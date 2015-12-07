@@ -1,7 +1,7 @@
 module Ruboty
   module Handlers
-    class GoogleImage < Base
-      on /image( me)? (?<keyword>.+)/, name: "image", description: "Search image from Google"
+    class BingImage < Base
+      on /image( me)? (?<keyword>.+)/, name: "image", description: "Search image from Bing"
 
       def image(message)
         if url = search(message[:keyword])
@@ -12,7 +12,7 @@ module Ruboty
       private
 
       def search(query)
-        Ruboty::GoogleImage::Client.new(query: query).get
+        Ruboty::BingImage::Client.new(query: query).get
       end
     end
   end

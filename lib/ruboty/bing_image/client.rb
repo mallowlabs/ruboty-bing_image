@@ -2,9 +2,9 @@ require "faraday"
 require "faraday_middleware"
 
 module Ruboty
-  module GoogleImage
+  module BingImage
     class Client
-      GOOGLE_IMAGE_API_URL = "http://ajax.googleapis.com/ajax/services/search/images"
+      BING_IMAGE_API_URL = "https://api.datamarket.azure.com/Bing/Search/v1/Image"
 
       attr_reader :options
 
@@ -12,8 +12,12 @@ module Ruboty
         @options = options
       end
 
+      def bing_api_key
+        ENV['BING_API_KEY']
+      end
+
       def get
-        resource["unescapedUrl"] if resource
+        resource["MediaUrl"] if resource
       rescue => exception
         Ruboty.logger.error("Error: #{self}##{__method__} - #{exception}")
         nil
@@ -23,7 +27,7 @@ module Ruboty
 
       def resource
         @resource ||= begin
-          if data = response.body["responseData"]
+          if data = response.body["d"]
             if results = data["results"]
               results.sample
             end
@@ -36,7 +40,7 @@ module Ruboty
       end
 
       def url
-        GOOGLE_IMAGE_API_URL
+        BING_IMAGE_API_URL
       end
 
       def params
@@ -45,15 +49,16 @@ module Ruboty
 
       def given_params
         {
-          q: options[:query],
+          "Query": "'#{options[:query]}'",
         }
       end
 
       def default_params
         {
-          rsz: 8,
-          safe: "active",
-          v: "1.0",
+          "Market": "'ja-JP'",
+          "Adult": "'Strict'",
+          "ImageFilters": "'Size:Medium'",
+          "$format": "json",
         }
       end
 
@@ -61,8 +66,10 @@ module Ruboty
         Faraday.new do |connection|
           connection.adapter :net_http
           connection.response :json
+          connection.basic_auth bing_api_key, bing_api_key
         end
       end
     end
   end
 end
+
